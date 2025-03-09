@@ -1,0 +1,11 @@
+name: cabal-events-utils
+  
+services:
+  database:
+    image: "gvenzl/oracle-xe:21-slim"
+    ports:
+      - "6000:1521"
+    environment:
+      ORACLE_PASSWORD: admin
+    volumes:
+      - ..\db-data:/opt/oracle/oradata
