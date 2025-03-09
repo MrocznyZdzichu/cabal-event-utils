@@ -8,22 +8,22 @@ parser.add_argument("--build", action="store_true", help="Add --build flag to do
 args = parser.parse_args()
 
 
-# compose_file = os.path.join("compose", "docker-compose.yml")
+compose_file = os.path.join("compose", "docker-compose.yml")
 
-# override_files = []
-# mainDirs = ('ModelsRepository', 'mlops-services')
+override_files = []
+mainDirs = ('services', 'Source')
 
-# for base in mainDirs:
-#     for root, dirs, files in os.walk(base):
-#         for file in files:
-#             if file == "docker-compose.override.yml":
-#                 override_files.append(os.path.join(root, file))
+for base in mainDirs:
+    for root, dirs, files in os.walk(base):
+        for file in files:
+            if file == "docker-compose.override.yml":
+                override_files.append(os.path.join(root, file))
 
-# command = ["docker-compose", "-f", compose_file] + [f'-f "{file}"' for file in override_files] + ["up", "-d"]
-# if args.build:
-#     command.append("--build")
+command = ["docker-compose", "-f", compose_file] + [f'-f "{file}"' for file in override_files] + ["up", "-d"]
+if args.build:
+    command.append("--build")
     
-# command_str = ' '.join(command)
-# print(command_str)
+command_str = ' '.join(command)
+print(command_str)
 
-# subprocess.run(command_str, shell=True)
+subprocess.run(command_str, shell=True)
