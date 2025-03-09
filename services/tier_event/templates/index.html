@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiers Event Manager</title>
+    <style>
+        body {
+            background-color: rgb(20, 30, 40);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid white;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid white;
+            border-bottom: none;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #444;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid white;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        select, button {
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            font-size: 16px;
+        }
+        button {
+            background-color: white;
+            color: black;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Event Manager</h1>
+        
+        <!-- Zakładki -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('manage-events')">Manage Events</div>
+            <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
+        </div>
+
+        <!-- Zakładka "Manage Events" -->
+        <div id="manage-events" class="tab-content active">
+            <h2>Current Event Table</h2>
+            <p>Selected table: <strong>{{ table_name }}</strong></p>
+
+            <form action="/set-current-event-table" method="post">
+                <select name="table_name">
+                    {% for table in all_tables %}
+                        <option value="{{ table }}" {% if table == table_name %}selected{% endif %}>{{ table }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Update Table</button>
+            </form>
+        </div>
+
+        <!-- Zakładka "Create Event Table" -->
+        <div id="create-event" class="tab-content">
+            <h2>Create New Event Table</h2>
+            <form id="createEventTableForm">
+                <input type="text" id="newTableName" placeholder="Enter table name" required>
+                <button type="button" onclick="createEventTable()">Create Table</button>
+            </form>
+            <p id="createTableMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function createEventTable() {
+            const tableName = document.getElementById('newTableName').value;
+            if (!tableName) {
+                alert("Please enter a table name.");
+                return;
+            }
+
+            const response = await fetch(`/create-event-table/${tableName}`, {
+                method: "POST"
+            });
+
+            const result = await response.json();
+            document.getElementById("createTableMessage").innerText = result.message;
+        }
+    </script>
+</body>
+</html>
