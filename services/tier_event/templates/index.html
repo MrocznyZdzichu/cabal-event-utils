@@ -61,6 +61,7 @@
         <div class="tabs">
             <div class="tab active" onclick="showTab('manage-events')">Manage Events</div>
             <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
+            <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
         </div>
 
         <!-- Zakładka "Manage Events" -->
@@ -87,6 +88,19 @@
             </form>
             <p id="createTableMessage"></p>
         </div>
+        <!-- Nowa zakładka "Add Tier Runs" -->
+        <div id="add-tier-runs" class="tab-content">
+            <h2>Add Tier Runs</h2>
+            <form id="addTierRunsForm">
+                <input type="number" id="week" placeholder="WEEK" required>
+                <input type="number" id="dayofweek" placeholder="DAYOFWEEK" required>
+                <input type="number" id="tier" placeholder="TIER" required>
+                <input type="text" id="dungeon" placeholder="DUNGEON" required>
+                <input type="number" id="run_count" placeholder="RUN_COUNT" required>
+                <button type="button" onclick="addTierRuns()">Add!</button>
+            </form>
+            <p id="addTierRunsMessage"></p>
+        </div>        
     </div>
 
     <script>
@@ -96,20 +110,28 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
         }
-
-        async function createEventTable() {
-            const tableName = document.getElementById('newTableName').value;
-            if (!tableName) {
-                alert("Please enter a table name.");
-                return;
-            }
-
-            const response = await fetch(`/create-event-table/${tableName}`, {
-                method: "POST"
+    
+        async function addTierRuns() {
+            const week = document.getElementById('week').value;
+            const dayofweek = document.getElementById('dayofweek').value;
+            const tier = document.getElementById('tier').value;
+            const dungeon = document.getElementById('dungeon').value;
+            const run_count = document.getElementById('run_count').value;
+            
+            const formData = new FormData();
+            formData.append("week", week);
+            formData.append("dayofweek", dayofweek);
+            formData.append("tier", tier);
+            formData.append("dungeon", dungeon);
+            formData.append("run_count", run_count);
+            
+            const response = await fetch("/add-tier-run", {
+                method: "POST",
+                body: formData
             });
-
+            
             const result = await response.json();
-            document.getElementById("createTableMessage").innerText = result.message;
+            document.getElementById("addTierRunsMessage").innerText = result.message;
         }
     </script>
 </body>

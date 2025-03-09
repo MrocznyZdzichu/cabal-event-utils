@@ -53,3 +53,18 @@ async def create_event_table(table_name: str):
         return {"message": f"Table '{table_name}' created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/add-tier-run")
+async def add_tier_run(
+    week: int = Form(...),
+    dayofweek: int = Form(...),
+    tier: int = Form(...),
+    dungeon: str = Form(...),
+    run_count: int = Form(...)
+):
+    try:
+        current_table = get_current_event_table(dbm)
+        add_runs_done(dbm, current_table, week, dayofweek, tier, dungeon, run_count)
+        return {"message": "Runs added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
