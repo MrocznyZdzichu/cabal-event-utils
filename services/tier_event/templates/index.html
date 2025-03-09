@@ -55,13 +55,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Event Manager</h1>
+        <h1>Tiers Event Manager</h1>
         
         <!-- Zakładki -->
         <div class="tabs">
             <div class="tab active" onclick="showTab('manage-events')">Manage Events</div>
             <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
             <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
+            <div class="tab" onclick="showTab('summary')">Summary</div>
         </div>
 
         <!-- Zakładka "Manage Events" -->
@@ -100,7 +101,77 @@
                 <button type="button" onclick="addTierRuns()">Add!</button>
             </form>
             <p id="addTierRunsMessage"></p>
-        </div>        
+        </div>     
+        
+        <div id="summary" class="tab-content">
+            <h2>Summary</h2>
+            
+            <h3>Tier Runs In Week</h3>
+            <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>WEEK</th>
+                        <th>TIER</th>
+                        <th>RUN_COUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary_tier_runs %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        
+            <h3>Dungeons Per Week</h3>
+            <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>WEEK</th>
+                        <th>TIER</th>
+                        <th>DUNGEON</th>
+                        <th>RUN_COUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary_dungs_week %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        
+            <h3>Dungeons Per Day</h3>
+            <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>WEEK</th>
+                        <th>DAYOFWEEK</th>
+                        <th>TIER</th>
+                        <th>DUNGEON</th>
+                        <th>RUN_COUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary_dungs_day %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>           
     </div>
 
     <script>

@@ -13,20 +13,38 @@ dbm = DBManager(in_docker=True)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """
-    Strona główna z interfejsem zarządzania.
+    Strona główna z interfejsem zarządzania oraz podsumowaniem statystyk.
     """
     try:
         table_name = get_current_event_table(dbm)
-        all_tables = get_all_event_tables(dbm)  # Pobranie dostępnych tabel
+        all_tables = get_all_event_tables(dbm)
+        
+        # Pobranie danych ze statystycznych widoków
+        sql_tier_runs = "SELECT * FROM DATA_TIER_EVENT.V_TIER_RUNS_IN_WEEK order by week, tier"
+        summary_tier_runs = dbm.run_query(sql_tier_runs, {})
+        
+        sql_dungs_week = "SELECT * FROM DATA_TIER_EVENT.V_DUNGS_PER_WEEK order by week, tier, dungeon"
+        summary_dungs_week = dbm.run_query(sql_dungs_week, {})
+        
+        sql_dungs_day = "SELECT * FROM DATA_TIER_EVENT.V_DUNGS_PER_DAY order by week, dayofweek, tier, dungeon"
+        summary_dungs_day = dbm.run_query(sql_dungs_day, {})
+
     except Exception as e:
         table_name = "Error fetching data"
         all_tables = []
+        summary_tier_runs = []
+        summary_dungs_week = []
+        summary_dungs_day = []
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "table_name": table_name,
-        "all_tables": all_tables
+        "all_tables": all_tables,
+        "summary_tier_runs": summary_tier_runs,
+        "summary_dungs_week": summary_dungs_week,
+        "summary_dungs_day": summary_dungs_day,
     })
+
 
 @app.get("/get-current-event-table")
 def get_current_event():

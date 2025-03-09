@@ -2,3 +2,4 @@ db-data
 cabal-event-utils
 */*checkpoint*/*
 *.pyc
+*.csv
