@@ -182,9 +182,15 @@
                 <h2>Summary</h2>
                 <button onclick="refreshSummary()">Refresh</button>
 
+                <h3>Filters</h3>
+                <div class="filters">
+                    <input type="text" id="week-filter" placeholder="Filter by week">
+                    <input type="text" id="day-filter" placeholder="Filter by day">
+                    <input type="text" id="tier-filter" placeholder="Filter by tier">
+                    <input type="text" id="dungeon-filter" placeholder="Filter by dungeon">
+                </div>
+
                 <h3>Tier Runs In Week</h3>
-                <input type="text" id="tier-runs-week-filter" placeholder="Filter by week">
-                <input type="text" id="tier-runs-tier-filter" placeholder="Filter by tier">
                 <table id="tier-runs-table" border="1">
                     <thead>
                         <tr>
@@ -194,21 +200,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for row in summary_tier_runs %}
-                        <tr>
-                            <td>{{ row[0] }}</td>
-                            <td>{{ row[1] }}</td>
-                            <td>{{ row[2] }}</td>
-                        </tr>
-                        {% endfor %}
+                        <!-- Dynamically filled by JavaScript -->
                     </tbody>
                 </table>
-            
+
                 <h3>Dungeons Per Week</h3>
-                <input type="text" id="week-filter" placeholder="Filter by week">
-                <input type="text" id="tier-filter" placeholder="Filter by tier">
-                <input type="text" id="dungeon-filter" placeholder="Filter by dungeon">
-                
                 <table id="dungs-week-table" border="1">
                     <thead>
                         <tr>
@@ -218,15 +214,12 @@
                             <th>RUN_COUNT</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
                 </table>
-                
+
                 <h3>Dungeons Per Day</h3>
-                <input type="text" id="day-week-filter" placeholder="Filter by week">
-                <input type="text" id="dayofweek-filter" placeholder="Filter by day of week">
-                <input type="text" id="day-tier-filter" placeholder="Filter by tier">
-                <input type="text" id="day-dungeon-filter" placeholder="Filter by dungeon">
-                
                 <table id="dungs-day-table" border="1">
                     <thead>
                         <tr>
@@ -237,8 +230,10 @@
                             <th>RUN_COUNT</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
-                </table>                
+                    <tbody>
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
+                </table>           
             </div>           
         </div>
 
@@ -248,33 +243,32 @@
                     const response = await fetch("/get-summary-data");
                     const data = await response.json();
 
-                    const tierRunsWeekFilter = document.getElementById("tier-runs-week-filter").value; 
-                    const tierRunsTierFilter = document.getElementById("tier-runs-tier-filter").value; 
-
+                    // Pobranie wartości filtrów
                     const weekFilter = document.getElementById("week-filter").value;
+                    const dayFilter = document.getElementById("day-filter").value;
                     const tierFilter = document.getElementById("tier-filter").value;
                     const dungeonFilter = document.getElementById("dungeon-filter").value;
 
-                    const dayOfWeekFilter = document.getElementById("dayofweek-filter").value;
-                    const dayTierFilter = document.getElementById("day-tier-filter").value;
-                    const dayDungeonFilter = document.getElementById("day-dungeon-filter").value;
-
+                    // Zastosowanie filtrów do wszystkich tabel
                     updateTable("tier-runs-table", data.summary_tier_runs, {
-                        week: tierRunsWeekFilter,
-                        tier: tierRunsTierFilter
+                        week: weekFilter,
+                        // dayofweek: dayFilter,
+                        tier: tierFilter
+                        // dungeon: dungeonFilter
                     });
 
                     updateTable("dungs-week-table", data.summary_dungs_week, {
                         week: weekFilter,
+                        // dayofweek: dayFilter,
                         tier: tierFilter,
                         dungeon: dungeonFilter
                     });
 
                     updateTable("dungs-day-table", data.summary_dungs_day, {
                         week: weekFilter,
-                        dayofweek: dayOfWeekFilter,
-                        tier: dayTierFilter,
-                        dungeon: dayDungeonFilter
+                        dayofweek: dayFilter,
+                        tier: tierFilter,
+                        dungeon: dungeonFilter
                     });
 
                 } catch (error) {
@@ -312,6 +306,12 @@
                     tbody.appendChild(tr);
                 });
             }
+
+            // Nasłuchujemy na zmiany w filtrach
+            document.getElementById("week-filter").addEventListener("input", refreshSummary);
+            document.getElementById("day-filter").addEventListener("input", refreshSummary);
+            document.getElementById("tier-filter").addEventListener("input", refreshSummary);
+            document.getElementById("dungeon-filter").addEventListener("input", refreshSummary);
      
             function showTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
