@@ -81,3 +81,21 @@ class DBManager:
             rows_deleted = cursor.rowcount
             connection.commit()
             return rows_deleted
+
+    def execute_update(self, query, data_dict=None):
+        """
+        Executes an UPDATE query and commits the changes.
+
+        Args:
+            query (str): SQL update statement.
+            data_dict (dict, optional): Parameters for the SQL update statement.
+
+        Returns:
+            int: The number of rows updated.
+        """
+        with self.__yield_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, data_dict)
+            rows_updated = cursor.rowcount
+            connection.commit()
+            return rows_updated

@@ -7,9 +7,11 @@ WORKDIR /app
 ENV IN_DOCKER=Yes
 
 COPY ["./DBManager", "/app/DBManager"]
-COPY ["./services/tier_event/Source", "/app/Source"]
-RUN ["pip", "install", "--no-cache-dir", "-r", "/app/Source/requirements.txt"]
+COPY ["./services/tier_event/requirements.txt", "/app/"]
+RUN ["pip", "install", "--no-cache-dir", "-r", "/app/requirements.txt"]
 
+COPY ["./services/tier_event/Source", "/app/Source"]
 COPY ["./services/tier_event/app.py", "/app/"]
+COPY ["./services/tier_event/templates", "/app/templates"]
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "6001"]
