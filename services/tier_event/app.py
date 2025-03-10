@@ -76,7 +76,7 @@ async def create_event_table(table_name: str):
 async def add_tier_run(
     week: int = Form(...),
     dayofweek: int = Form(...),
-    tier: int = Form(...),
+    tier: str = Form(...),
     dungeon: str = Form(...),
     run_count: int = Form(...)
 ):
