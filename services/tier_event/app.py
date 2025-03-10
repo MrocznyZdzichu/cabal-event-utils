@@ -86,3 +86,23 @@ async def add_tier_run(
         return {"message": "Runs added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get-summary-data")
+async def get_summary_data():
+    try:
+        sql_tier_runs = "SELECT * FROM DATA_TIER_EVENT.V_TIER_RUNS_IN_WEEK order by week, tier"
+        summary_tier_runs = dbm.run_query(sql_tier_runs, {})
+        
+        sql_dungs_week = "SELECT * FROM DATA_TIER_EVENT.V_DUNGS_PER_WEEK order by week, tier, dungeon"
+        summary_dungs_week = dbm.run_query(sql_dungs_week, {})
+        
+        sql_dungs_day = "SELECT * FROM DATA_TIER_EVENT.V_DUNGS_PER_DAY order by week, dayofweek, tier, dungeon"
+        summary_dungs_day = dbm.run_query(sql_dungs_day, {})
+
+        return {
+            "summary_tier_runs": summary_tier_runs,
+            "summary_dungs_week": summary_dungs_week,
+            "summary_dungs_day": summary_dungs_day,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

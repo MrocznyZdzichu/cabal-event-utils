@@ -1,209 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiers Event Manager</title>
-    <style>
-        body {
-            background-color: rgb(20, 30, 40);
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            padding: 20px;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid white;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid white;
-            border-bottom: none;
-            margin-right: 5px;
-        }
-        .tab.active {
-            background-color: #444;
-        }
-        .tab-content {
-            display: none;
-            padding: 20px;
-            border: 1px solid white;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        select, button {
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            font-size: 16px;
-        }
-        button {
-            background-color: white;
-            color: black;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: gray;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Tiers Event Manager</h1>
-        
-        <!-- Zakładki -->
-        <div class="tabs">
-            <div class="tab active" onclick="showTab('manage-events')">Manage Events</div>
-            <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
-            <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
-            <div class="tab" onclick="showTab('summary')">Summary</div>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tiers Event Manager</title>
+        <style>
+            body {
+                background-color: rgb(20, 30, 40);
+                color: white;
+                font-family: Arial, sans-serif;
+            }
+            .container {
+                width: 80%;
+                margin: auto;
+                padding: 20px;
+            }
+            .tabs {
+                display: flex;
+                border-bottom: 2px solid white;
+            }
+            .tab {
+                padding: 10px 20px;
+                cursor: pointer;
+                border: 1px solid white;
+                border-bottom: none;
+                margin-right: 5px;
+            }
+            .tab.active {
+                background-color: #444;
+            }
+            .tab-content {
+                display: none;
+                padding: 20px;
+                border: 1px solid white;
+            }
+            .tab-content.active {
+                display: block;
+            }
+            select, button {
+                padding: 10px;
+                margin-top: 10px;
+                border: none;
+                font-size: 16px;
+            }
+            button {
+                background-color: white;
+                color: black;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: gray;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Tiers Event Manager</h1>
+            
+            <!-- Zakładki -->
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('manage-events')">Manage Events</div>
+                <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
+                <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
+                <div class="tab" onclick="showTab('summary')">Summary</div>
+            </div>
+
+            <!-- Zakładka "Manage Events" -->
+            <div id="manage-events" class="tab-content active">
+                <h2>Current Event Table</h2>
+                <p>Selected table: <strong>{{ table_name }}</strong></p>
+
+                <form action="/set-current-event-table" method="post">
+                    <select name="table_name">
+                        {% for table in all_tables %}
+                            <option value="{{ table }}" {% if table == table_name %}selected{% endif %}>{{ table }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Update Table</button>
+                </form>
+            </div>
+
+            <!-- Zakładka "Create Event Table" -->
+            <div id="create-event" class="tab-content">
+                <h2>Create New Event Table</h2>
+                <form id="createEventTableForm">
+                    <input type="text" id="newTableName" placeholder="Enter table name" required>
+                    <button type="button" onclick="createEventTable()">Create Table</button>
+                </form>
+                <p id="createTableMessage"></p>
+            </div>
+            <!-- Nowa zakładka "Add Tier Runs" -->
+            <div id="add-tier-runs" class="tab-content">
+                <h2>Add Tier Runs</h2>
+                <form id="addTierRunsForm">
+                    <input type="number" id="week" placeholder="WEEK" required>
+                    <input type="number" id="dayofweek" placeholder="DAYOFWEEK" required>
+                    <input type="text" id="tier" placeholder="TIER" required>
+                    <input type="text" id="dungeon" placeholder="DUNGEON" required>
+                    <input type="number" id="run_count" placeholder="RUN_COUNT" required>
+                    <button type="button" onclick="addTierRuns()">Add!</button>
+                </form>
+                <p id="addTierRunsMessage"></p>
+            </div>     
+            
+            <div id="summary" class="tab-content">
+                <h2>Summary</h2>
+                <button onclick="refreshSummary()">Refresh</button>
+
+                <h3>Tier Runs In Week</h3>
+                <table border="1" cellpadding="5" cellspacing="0">
+                    <table id="tier-runs-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>WEEK</th>
+                            <th>TIER</th>
+                            <th>RUN_COUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary_tier_runs %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            
+                <h3>Dungeons Per Week</h3>
+                <table border="1" cellpadding="5" cellspacing="0">
+                    <table id="dungs-week-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>WEEK</th>
+                            <th>TIER</th>
+                            <th>DUNGEON</th>
+                            <th>RUN_COUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary_dungs_week %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            
+                <h3>Dungeons Per Day</h3>
+                <table border="1" cellpadding="5" cellspacing="0">
+                    <table id="dungs-day-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>WEEK</th>
+                            <th>DAYOFWEEK</th>
+                            <th>TIER</th>
+                            <th>DUNGEON</th>
+                            <th>RUN_COUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary_dungs_day %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>           
         </div>
 
-        <!-- Zakładka "Manage Events" -->
-        <div id="manage-events" class="tab-content active">
-            <h2>Current Event Table</h2>
-            <p>Selected table: <strong>{{ table_name }}</strong></p>
+        <script>
+            async function refreshSummary() {
+                const response = await fetch("/get-summary-data");
+                const data = await response.json();
 
-            <form action="/set-current-event-table" method="post">
-                <select name="table_name">
-                    {% for table in all_tables %}
-                        <option value="{{ table }}" {% if table == table_name %}selected{% endif %}>{{ table }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit">Update Table</button>
-            </form>
-        </div>
+                updateTable("tier-runs-table", data.summary_tier_runs);
+                updateTable("dungs-week-table", data.summary_dungs_week);
+                updateTable("dungs-day-table", data.summary_dungs_day);
+            }
 
-        <!-- Zakładka "Create Event Table" -->
-        <div id="create-event" class="tab-content">
-            <h2>Create New Event Table</h2>
-            <form id="createEventTableForm">
-                <input type="text" id="newTableName" placeholder="Enter table name" required>
-                <button type="button" onclick="createEventTable()">Create Table</button>
-            </form>
-            <p id="createTableMessage"></p>
-        </div>
-        <!-- Nowa zakładka "Add Tier Runs" -->
-        <div id="add-tier-runs" class="tab-content">
-            <h2>Add Tier Runs</h2>
-            <form id="addTierRunsForm">
-                <input type="number" id="week" placeholder="WEEK" required>
-                <input type="number" id="dayofweek" placeholder="DAYOFWEEK" required>
-                <input type="text" id="tier" placeholder="TIER" required>
-                <input type="text" id="dungeon" placeholder="DUNGEON" required>
-                <input type="number" id="run_count" placeholder="RUN_COUNT" required>
-                <button type="button" onclick="addTierRuns()">Add!</button>
-            </form>
-            <p id="addTierRunsMessage"></p>
-        </div>     
-        
-        <div id="summary" class="tab-content">
-            <h2>Summary</h2>
-            
-            <h3>Tier Runs In Week</h3>
-            <table border="1" cellpadding="5" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>WEEK</th>
-                        <th>TIER</th>
-                        <th>RUN_COUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in summary_tier_runs %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>{{ row[2] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        
-            <h3>Dungeons Per Week</h3>
-            <table border="1" cellpadding="5" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>WEEK</th>
-                        <th>TIER</th>
-                        <th>DUNGEON</th>
-                        <th>RUN_COUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in summary_dungs_week %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>{{ row[2] }}</td>
-                        <td>{{ row[3] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        
-            <h3>Dungeons Per Day</h3>
-            <table border="1" cellpadding="5" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>WEEK</th>
-                        <th>DAYOFWEEK</th>
-                        <th>TIER</th>
-                        <th>DUNGEON</th>
-                        <th>RUN_COUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in summary_dungs_day %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>{{ row[2] }}</td>
-                        <td>{{ row[3] }}</td>
-                        <td>{{ row[4] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>           
-    </div>
+            function updateTable(tableId, data) {
+                const tableBody = document.querySelector(`#${tableId} tbody`);
+                tableBody.innerHTML = "";  // Wyczyść tabelę przed dodaniem nowych danych
 
-    <script>
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
-    
-        async function addTierRuns() {
-            const week = document.getElementById('week').value;
-            const dayofweek = document.getElementById('dayofweek').value;
-            const tier = document.getElementById('tier').value;
-            const dungeon = document.getElementById('dungeon').value;
-            const run_count = document.getElementById('run_count').value;
-            
-            const formData = new FormData();
-            formData.append("week", week);
-            formData.append("dayofweek", dayofweek);
-            formData.append("tier", tier);
-            formData.append("dungeon", dungeon);
-            formData.append("run_count", run_count);
-            
-            const response = await fetch("/add-tier-run", {
-                method: "POST",
-                body: formData
-            });
-            
-            const result = await response.json();
-            document.getElementById("addTierRunsMessage").innerText = result.message;
-        }
-    </script>
-</body>
-</html>
+                data.forEach(row => {
+                    const tr = document.createElement("tr");
+                    row.forEach(cell => {
+                        const td = document.createElement("td");
+                        td.textContent = cell;
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            }        
+            function showTab(tabId) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                event.target.classList.add('active');
+            }
+        
+            async function addTierRuns() {
+                const week = document.getElementById('week').value;
+                const dayofweek = document.getElementById('dayofweek').value;
+                const tier = document.getElementById('tier').value;
+                const dungeon = document.getElementById('dungeon').value;
+                const run_count = document.getElementById('run_count').value;
+                
+                const formData = new FormData();
+                formData.append("week", week);
+                formData.append("dayofweek", dayofweek);
+                formData.append("tier", tier);
+                formData.append("dungeon", dungeon);
+                formData.append("run_count", run_count);
+                
+                const response = await fetch("/add-tier-run", {
+                    method: "POST",
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById("addTierRunsMessage").innerText = result.message;
+            }
+        </script>
+    </body>
+    </html>
