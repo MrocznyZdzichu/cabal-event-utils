@@ -93,15 +93,30 @@
             <div id="add-tier-runs" class="tab-content">
                 <h2>Add Tier Runs</h2>
                 <form id="addTierRunsForm">
-                    <input type="number" id="week" placeholder="WEEK" required>
-                    <input type="number" id="dayofweek" placeholder="DAYOFWEEK" required>
-                    <input type="text" id="tier" placeholder="TIER" required>
-                    <input type="text" id="dungeon" placeholder="DUNGEON" required>
-                    <input type="number" id="run_count" placeholder="RUN_COUNT" required>
+                    <div>
+                        <label for="week">WEEK</label>
+                        <input type="number" id="week" placeholder="Enter week number" required>
+                    </div>
+                    <div>
+                        <label for="dayofweek">DAYOFWEEK</label>
+                        <input type="number" id="dayofweek" placeholder="Enter day of the week" required>
+                    </div>
+                    <div>
+                        <label for="tier">TIER</label>
+                        <input type="text" id="tier" placeholder="Enter tier" required>
+                    </div>
+                    <div>
+                        <label for="dungeon">DUNGEON</label>
+                        <input type="text" id="dungeon" placeholder="Enter dungeon" required>
+                    </div>
+                    <div>
+                        <label for="run_count">RUN_COUNT</label>
+                        <input type="number" id="run_count" placeholder="Enter run count" required>
+                    </div>
                     <button type="button" onclick="addTierRuns()">Add!</button>
                 </form>
                 <p id="addTierRunsMessage"></p>
-            </div>     
+            </div>   
             
             <div id="summary" class="tab-content">
                 <h2>Summary</h2>
