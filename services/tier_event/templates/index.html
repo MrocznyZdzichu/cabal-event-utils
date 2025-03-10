@@ -108,8 +108,9 @@
                 <button onclick="refreshSummary()">Refresh</button>
 
                 <h3>Tier Runs In Week</h3>
-                <table border="1" cellpadding="5" cellspacing="0">
-                    <table id="tier-runs-table" border="1">
+                <input type="text" id="tier-runs-week-filter" placeholder="Filter by week">
+                <input type="text" id="tier-runs-tier-filter" placeholder="Filter by tier">
+                <table id="tier-runs-table" border="1">
                     <thead>
                         <tr>
                             <th>WEEK</th>
@@ -129,8 +130,11 @@
                 </table>
             
                 <h3>Dungeons Per Week</h3>
-                <table border="1" cellpadding="5" cellspacing="0">
-                    <table id="dungs-week-table" border="1">
+                <input type="text" id="week-filter" placeholder="Filter by week">
+                <input type="text" id="tier-filter" placeholder="Filter by tier">
+                <input type="text" id="dungeon-filter" placeholder="Filter by dungeon">
+                
+                <table id="dungs-week-table" border="1">
                     <thead>
                         <tr>
                             <th>WEEK</th>
@@ -139,21 +143,16 @@
                             <th>RUN_COUNT</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for row in summary_dungs_week %}
-                        <tr>
-                            <td>{{ row[0] }}</td>
-                            <td>{{ row[1] }}</td>
-                            <td>{{ row[2] }}</td>
-                            <td>{{ row[3] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                    <tbody></tbody>
                 </table>
-            
+                
                 <h3>Dungeons Per Day</h3>
-                <table border="1" cellpadding="5" cellspacing="0">
-                    <table id="dungs-day-table" border="1">
+                <input type="text" id="day-week-filter" placeholder="Filter by week">
+                <input type="text" id="dayofweek-filter" placeholder="Filter by day of week">
+                <input type="text" id="day-tier-filter" placeholder="Filter by tier">
+                <input type="text" id="day-dungeon-filter" placeholder="Filter by dungeon">
+                
+                <table id="dungs-day-table" border="1">
                     <thead>
                         <tr>
                             <th>WEEK</th>
@@ -163,45 +162,82 @@
                             <th>RUN_COUNT</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for row in summary_dungs_day %}
-                        <tr>
-                            <td>{{ row[0] }}</td>
-                            <td>{{ row[1] }}</td>
-                            <td>{{ row[2] }}</td>
-                            <td>{{ row[3] }}</td>
-                            <td>{{ row[4] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                    <tbody></tbody>
+                </table>                
             </div>           
         </div>
 
         <script>
             async function refreshSummary() {
-                const response = await fetch("/get-summary-data");
-                const data = await response.json();
+                try {
+                    const response = await fetch("/get-summary-data");
+                    const data = await response.json();
 
-                updateTable("tier-runs-table", data.summary_tier_runs);
-                updateTable("dungs-week-table", data.summary_dungs_week);
-                updateTable("dungs-day-table", data.summary_dungs_day);
+                    const tierRunsWeekFilter = document.getElementById("tier-runs-week-filter").value; 
+                    const tierRunsTierFilter = document.getElementById("tier-runs-tier-filter").value; 
+
+                    const weekFilter = document.getElementById("week-filter").value;
+                    const tierFilter = document.getElementById("tier-filter").value;
+                    const dungeonFilter = document.getElementById("dungeon-filter").value;
+
+                    const dayOfWeekFilter = document.getElementById("dayofweek-filter").value;
+                    const dayTierFilter = document.getElementById("day-tier-filter").value;
+                    const dayDungeonFilter = document.getElementById("day-dungeon-filter").value;
+
+                    updateTable("tier-runs-table", data.summary_tier_runs, {
+                        week: tierRunsWeekFilter,
+                        tier: tierRunsTierFilter
+                    });
+
+                    updateTable("dungs-week-table", data.summary_dungs_week, {
+                        week: weekFilter,
+                        tier: tierFilter,
+                        dungeon: dungeonFilter
+                    });
+
+                    updateTable("dungs-day-table", data.summary_dungs_day, {
+                        week: weekFilter,
+                        dayofweek: dayOfWeekFilter,
+                        tier: dayTierFilter,
+                        dungeon: dayDungeonFilter
+                    });
+
+                } catch (error) {
+                    console.error("Error fetching summary data:", error);
+                }
             }
 
-            function updateTable(tableId, data) {
-                const tableBody = document.querySelector(`#${tableId} tbody`);
-                tableBody.innerHTML = "";  // Wyczyść tabelę przed dodaniem nowych danych
+            function updateTable(tableId, data, filters = {}) {
+                const table = document.getElementById(tableId);
+                let tbody = table.querySelector("tbody");
 
-                data.forEach(row => {
+                if (!tbody) {
+                    tbody = document.createElement("tbody");
+                    table.appendChild(tbody);
+                }
+
+                tbody.innerHTML = ""; // Wyczyść zawartość tabeli
+
+                // Przefiltruj dane na podstawie wartości w polach filtrów
+                const filteredData = data.filter(row => {
+                    return Object.keys(filters).every((key, index) => {
+                        const filterValue = filters[key].toLowerCase();
+                        return !filterValue || row[index].toString().toLowerCase().includes(filterValue);
+                    });
+                });
+
+                // Wypełnienie tabeli danymi
+                filteredData.forEach(row => {
                     const tr = document.createElement("tr");
                     row.forEach(cell => {
                         const td = document.createElement("td");
                         td.textContent = cell;
                         tr.appendChild(td);
                     });
-                    tableBody.appendChild(tr);
+                    tbody.appendChild(tr);
                 });
-            }        
+            }
+     
             function showTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -231,6 +267,18 @@
                 const result = await response.json();
                 document.getElementById("addTierRunsMessage").innerText = result.message;
             }
+            
+            document.getElementById("tier-runs-week-filter").addEventListener("input", refreshSummary);
+            document.getElementById("tier-runs-tier-filter").addEventListener("input", refreshSummary);
+
+            document.getElementById("week-filter").addEventListener("input", refreshSummary);
+            document.getElementById("tier-filter").addEventListener("input", refreshSummary);
+            document.getElementById("dungeon-filter").addEventListener("input", refreshSummary);
+
+            document.getElementById("day-week-filter").addEventListener("input", refreshSummary);
+            document.getElementById("dayofweek-filter").addEventListener("input", refreshSummary);
+            document.getElementById("day-tier-filter").addEventListener("input", refreshSummary);
+            document.getElementById("day-dungeon-filter").addEventListener("input", refreshSummary);
         </script>
     </body>
     </html>
