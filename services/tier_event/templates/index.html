@@ -92,31 +92,91 @@
             <!-- Nowa zakładka "Add Tier Runs" -->
             <div id="add-tier-runs" class="tab-content">
                 <h2>Add Tier Runs</h2>
-                <form id="addTierRunsForm">
-                    <div>
+                <form id="addTierRunsForm" class="form-container">
+                    <div class="form-group">
                         <label for="week">WEEK</label>
                         <input type="number" id="week" placeholder="Enter week number" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label for="dayofweek">DAYOFWEEK</label>
                         <input type="number" id="dayofweek" placeholder="Enter day of the week" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label for="tier">TIER</label>
                         <input type="text" id="tier" placeholder="Enter tier" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label for="dungeon">DUNGEON</label>
                         <input type="text" id="dungeon" placeholder="Enter dungeon" required>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label for="run_count">RUN_COUNT</label>
                         <input type="number" id="run_count" placeholder="Enter run count" required>
                     </div>
-                    <button type="button" onclick="addTierRuns()">Add!</button>
+                    <button type="button" onclick="addTierRuns()" class="submit-button">Add!</button>
                 </form>
                 <p id="addTierRunsMessage"></p>
-            </div>   
+            </div>
+            
+            <style>
+                .form-container {
+                    display: grid;
+                    grid-template-columns: 1fr 2fr;
+                    gap: 15px;
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+            
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+            
+                label {
+                    font-size: 16px;
+                    margin-bottom: 5px;
+                    color: #ddd;
+                }
+            
+                input {
+                    padding: 10px;
+                    font-size: 16px;
+                    background-color: #333;
+                    color: white;
+                    border: 1px solid #555;
+                    border-radius: 5px;
+                    margin-bottom: 15px;
+                }
+            
+                input:focus {
+                    border-color: #007BFF;
+                    outline: none;
+                }
+            
+                .submit-button {
+                    grid-column: span 2;
+                    padding: 12px;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+                }
+            
+                .submit-button:hover {
+                    background-color: #0056b3;
+                }
+            
+                .form-group input {
+                    border-radius: 5px;
+                }
+            
+                .form-group input:focus {
+                    border-color: #007BFF;
+                }
+            </style> 
             
             <div id="summary" class="tab-content">
                 <h2>Summary</h2>
@@ -280,7 +340,15 @@
                 });
                 
                 const result = await response.json();
-                document.getElementById("addTierRunsMessage").innerText = result.message;
+                const messageElement = document.getElementById("addTierRunsMessage");
+                messageElement.innerText = result.message;
+
+                // Ukryj komunikat po 3 sekundach
+                setTimeout(() => {
+                    messageElement.innerText = '';
+                }, 1500);
+
+                await refreshSummary();
             }
             
             document.getElementById("tier-runs-week-filter").addEventListener("input", refreshSummary);
