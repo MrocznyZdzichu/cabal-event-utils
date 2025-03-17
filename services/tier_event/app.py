@@ -106,3 +106,52 @@ async def get_summary_data():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get-detail-data")
+async def get_detail_data():
+    try:
+        current_table = get_current_event_table(dbm)
+        if not current_table:
+            raise HTTPException(status_code=404, detail="No current table set")
+
+        # Zbudowanie dynamicznego zapytania SQL dla aktualnej tabeli
+        query = f"SELECT ROWID, WEEK, DAYOFWEEK, TIER, DUNGEON FROM DATA_TIER_EVENT.{current_table}"
+        detail_data = dbm.run_query(query, {})
+
+        return detail_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/delete-row/{row_id}")
+async def delete_row(row_id: str):
+    try:
+        current_table = get_current_event_table(dbm)
+        if not current_table:
+            raise HTTPException(status_code=404, detail="No current table set")
+
+        # Usuń wiersz na podstawie ROWID
+        delete_query = f"DELETE FROM DATA_TIER_EVENT.{current_table} WHERE ROWID = :row_id"
+        dbm.execute_delete(delete_query, {"row_id": row_id})
+
+        return {"message": "Row deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/update-row/{row_id}")
+async def update_row(row_id: str, update_data: dict):
+    try:
+        current_table = get_current_event_table(dbm)
+        if not current_table:
+            raise HTTPException(status_code=404, detail="No current table set")
+
+        print(update_data)
+        new_tier = update_data.get("tier")
+        new_dungeon = update_data.get("dungeon")
+        print(new_tier, new_dungeon)
+        # Aktualizuj dane w wierszu
+        update_query = f"UPDATE DATA_TIER_EVENT.{current_table} SET TIER = :tier, DUNGEON = :dungeon WHERE ROWID = :row_id"
+        dbm.execute_update(update_query, {"tier": new_tier, "dungeon": new_dungeon, "row_id": row_id})
+
+        return {"message": "Row updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

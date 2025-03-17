@@ -63,6 +63,7 @@
                 <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
                 <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
                 <div class="tab" onclick="showTab('summary')">Summary</div>
+                <div class="tab" onclick="showTab('detail-browser')">Detail Browser</div> 
             </div>
 
             <!-- Zakładka "Manage Events" -->
@@ -118,6 +119,37 @@
                 <p id="addTierRunsMessage"></p>
             </div>
             
+            <!-- Zakładka "Detail Browser" -->
+            <div id="detail-browser" class="tab-content">
+                <h2>Detail Browser</h2>
+                <button onclick="refreshDetailBrowser()">Refresh</button>
+                
+                <!-- Filtry -->
+                <h3>Filters</h3>
+                <div class="filters">
+                    <input type="text" id="week-filter-detal" placeholder="Filter by week">
+                    <input type="text" id="day-filter-detal" placeholder="Filter by day">
+                    <input type="text" id="tier-filter-detal" placeholder="Filter by tier">
+                    <input type="text" id="dungeon-filter-detal" placeholder="Filter by dungeon">
+                </div>
+
+                <table id="detail-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>ROWID</th>
+                            <th>WEEK</th>
+                            <th>DAYOFWEEK</th>
+                            <th>TIER</th>
+                            <th>DUNGEON</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
             <style>
                 .form-container {
                     display: grid;
@@ -313,6 +345,11 @@
             document.getElementById("tier-filter").addEventListener("input", refreshSummary);
             document.getElementById("dungeon-filter").addEventListener("input", refreshSummary);
      
+            document.getElementById("week-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("day-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("tier-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("dungeon-filter-detal").addEventListener("input", refreshDetailBrowser);
+
             function showTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -349,6 +386,22 @@
                 }, 1500);
 
                 await refreshSummary();
+                await refreshDetailBrowser();
+            }
+
+            async function createEventTable() {
+                const tableName = document.getElementById('newTableName').value;
+                if (!tableName) {
+                    alert("Please enter a table name.");
+                    return;
+                }
+
+                const response = await fetch(`/create-event-table/${tableName}`, {
+                    method: "POST"
+                });
+
+                const result = await response.json();
+                document.getElementById("createTableMessage").innerText = result.message;
             }
             
             document.getElementById("tier-runs-week-filter").addEventListener("input", refreshSummary);
@@ -362,6 +415,100 @@
             document.getElementById("dayofweek-filter").addEventListener("input", refreshSummary);
             document.getElementById("day-tier-filter").addEventListener("input", refreshSummary);
             document.getElementById("day-dungeon-filter").addEventListener("input", refreshSummary);
+
+            async function refreshDetailBrowser() {
+                try {
+                    const response = await fetch("/get-detail-data");
+                    const data = await response.json();
+
+                    // Pobranie wartości filtrów
+                    const weekFilter = document.getElementById("week-filter-detal").value;
+                    const dayFilter = document.getElementById("day-filter-detal").value;
+                    const tierFilter = document.getElementById("tier-filter-detal").value;
+                    const dungeonFilter = document.getElementById("dungeon-filter-detal").value;
+
+                    // Przefiltruj dane na podstawie wartości filtrów
+                    const filteredData = data.filter(row => {
+                        return (
+                            (!weekFilter || row[1].toString().toLowerCase().includes(weekFilter.toLowerCase())) &&
+                            (!dayFilter || row[2].toString().toLowerCase().includes(dayFilter.toLowerCase())) &&
+                            (!tierFilter || row[3].toString().toLowerCase().includes(tierFilter.toLowerCase())) &&
+                            (!dungeonFilter || row[4].toString().toLowerCase().includes(dungeonFilter.toLowerCase()))
+                        );
+                    });
+
+                    // Zaktualizuj tabelę
+                    const table = document.getElementById("detail-table");
+                    let tbody = table.querySelector("tbody");
+
+                    if (!tbody) {
+                        tbody = document.createElement("tbody");
+                        table.appendChild(tbody);
+                    }
+
+                    tbody.innerHTML = ""; // Wyczyść tabelę
+
+                    // Wypełnij tabelę danymi
+                    filteredData.forEach(row => {
+                        const tr = document.createElement("tr");
+                        row.forEach((cell, index) => {
+                            const td = document.createElement("td");
+                            td.textContent = cell;
+                            tr.appendChild(td);
+                        });
+
+                        // Dodaj kolumnę akcji (edycja/usunięcie)
+                        const tdAction = document.createElement("td");
+                        const deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.onclick = () => deleteRow(row[0]); // użyj ROWID jako identyfikator
+                        const editButton = document.createElement("button");
+                        editButton.textContent = "Edit";
+                        editButton.onclick = () => editRow(row[0]);
+                        tdAction.appendChild(deleteButton);
+                        tdAction.appendChild(editButton);
+                        tr.appendChild(tdAction);
+
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error("Error fetching detail data:", error);
+                }
+            }
+
+            // Funkcja usuwania wiersza
+            async function deleteRow(rowId) {
+                const response = await fetch(`/delete-row/${rowId}`, {
+                    method: "DELETE"
+                });
+                const result = await response.json();
+                alert(result.message);
+                await refreshDetailBrowser(); // Odśwież tabelę po usunięciu wiersza
+            }
+
+            // Funkcja edytowania wiersza (można rozbudować formularz do edycji)
+            async function editRow(rowId) {
+                const newTier = prompt("Enter new tier:");
+                const newDungeon = prompt("Enter new dungeon:");
+
+                const response = await fetch(`/update-row/${rowId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ tier: newTier, dungeon: newDungeon })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+                await refreshDetailBrowser(); // Odśwież tabelę po edycji
+            }
+
+            document.getElementById("week-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("day-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("tier-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("dungeon-filter-detal").addEventListener("input", refreshDetailBrowser);
+
         </script>
     </body>
     </html>
