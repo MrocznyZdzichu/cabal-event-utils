@@ -115,7 +115,7 @@ async def get_detail_data():
             raise HTTPException(status_code=404, detail="No current table set")
 
         # Zbudowanie dynamicznego zapytania SQL dla aktualnej tabeli
-        query = f"SELECT ROWID, WEEK, DAYOFWEEK, TIER, DUNGEON FROM DATA_TIER_EVENT.{current_table} ORDER BY WEEK, DAYOFWEEK, TIER"
+        query = f"SELECT ROWID, WEEK, DAYOFWEEK, TIER, DUNGEON FROM DATA_TIER_EVENT.{current_table}"
         detail_data = dbm.run_query(query, {})
 
         return detail_data

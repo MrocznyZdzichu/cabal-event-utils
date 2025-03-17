@@ -123,6 +123,15 @@
             <div id="detail-browser" class="tab-content">
                 <h2>Detail Browser</h2>
                 <button onclick="refreshDetailBrowser()">Refresh</button>
+                
+                <!-- Filtry -->
+                <h3>Filters</h3>
+                <div class="filters">
+                    <input type="text" id="week-filter-detal" placeholder="Filter by week">
+                    <input type="text" id="day-filter-detal" placeholder="Filter by day">
+                    <input type="text" id="tier-filter-detal" placeholder="Filter by tier">
+                    <input type="text" id="dungeon-filter-detal" placeholder="Filter by dungeon">
+                </div>
 
                 <table id="detail-table" border="1">
                     <thead>
@@ -336,6 +345,11 @@
             document.getElementById("tier-filter").addEventListener("input", refreshSummary);
             document.getElementById("dungeon-filter").addEventListener("input", refreshSummary);
      
+            document.getElementById("week-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("day-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("tier-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("dungeon-filter-detal").addEventListener("input", refreshDetailBrowser);
+
             function showTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -372,6 +386,7 @@
                 }, 1500);
 
                 await refreshSummary();
+                await refreshDetailBrowser();
             }
 
             async function createEventTable() {
@@ -406,7 +421,23 @@
                     const response = await fetch("/get-detail-data");
                     const data = await response.json();
 
-                    // Zaktualizuj tabelę z detalami
+                    // Pobranie wartości filtrów
+                    const weekFilter = document.getElementById("week-filter-detal").value;
+                    const dayFilter = document.getElementById("day-filter-detal").value;
+                    const tierFilter = document.getElementById("tier-filter-detal").value;
+                    const dungeonFilter = document.getElementById("dungeon-filter-detal").value;
+
+                    // Przefiltruj dane na podstawie wartości filtrów
+                    const filteredData = data.filter(row => {
+                        return (
+                            (!weekFilter || row[1].toString().toLowerCase().includes(weekFilter.toLowerCase())) &&
+                            (!dayFilter || row[2].toString().toLowerCase().includes(dayFilter.toLowerCase())) &&
+                            (!tierFilter || row[3].toString().toLowerCase().includes(tierFilter.toLowerCase())) &&
+                            (!dungeonFilter || row[4].toString().toLowerCase().includes(dungeonFilter.toLowerCase()))
+                        );
+                    });
+
+                    // Zaktualizuj tabelę
                     const table = document.getElementById("detail-table");
                     let tbody = table.querySelector("tbody");
 
@@ -418,7 +449,7 @@
                     tbody.innerHTML = ""; // Wyczyść tabelę
 
                     // Wypełnij tabelę danymi
-                    data.forEach(row => {
+                    filteredData.forEach(row => {
                         const tr = document.createElement("tr");
                         row.forEach((cell, index) => {
                             const td = document.createElement("td");
@@ -472,6 +503,12 @@
                 alert(result.message);
                 await refreshDetailBrowser(); // Odśwież tabelę po edycji
             }
+
+            document.getElementById("week-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("day-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("tier-filter-detal").addEventListener("input", refreshDetailBrowser);
+            document.getElementById("dungeon-filter-detal").addEventListener("input", refreshDetailBrowser);
+
         </script>
     </body>
     </html>
