@@ -63,6 +63,7 @@
                 <div class="tab" onclick="showTab('create-event')">Create Event Table</div>
                 <div class="tab" onclick="showTab('add-tier-runs')">Add Tier Runs</div>
                 <div class="tab" onclick="showTab('summary')">Summary</div>
+                <div class="tab" onclick="showTab('detail-browser')">Detail Browser</div> 
             </div>
 
             <!-- Zakładka "Manage Events" -->
@@ -118,6 +119,28 @@
                 <p id="addTierRunsMessage"></p>
             </div>
             
+            <!-- Zakładka "Detail Browser" -->
+            <div id="detail-browser" class="tab-content">
+                <h2>Detail Browser</h2>
+                <button onclick="refreshDetailBrowser()">Refresh</button>
+
+                <table id="detail-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>ROWID</th>
+                            <th>WEEK</th>
+                            <th>DAYOFWEEK</th>
+                            <th>TIER</th>
+                            <th>DUNGEON</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
             <style>
                 .form-container {
                     display: grid;
@@ -350,6 +373,21 @@
 
                 await refreshSummary();
             }
+
+            async function createEventTable() {
+                const tableName = document.getElementById('newTableName').value;
+                if (!tableName) {
+                    alert("Please enter a table name.");
+                    return;
+                }
+
+                const response = await fetch(`/create-event-table/${tableName}`, {
+                    method: "POST"
+                });
+
+                const result = await response.json();
+                document.getElementById("createTableMessage").innerText = result.message;
+            }
             
             document.getElementById("tier-runs-week-filter").addEventListener("input", refreshSummary);
             document.getElementById("tier-runs-tier-filter").addEventListener("input", refreshSummary);
@@ -362,6 +400,78 @@
             document.getElementById("dayofweek-filter").addEventListener("input", refreshSummary);
             document.getElementById("day-tier-filter").addEventListener("input", refreshSummary);
             document.getElementById("day-dungeon-filter").addEventListener("input", refreshSummary);
+
+            async function refreshDetailBrowser() {
+                try {
+                    const response = await fetch("/get-detail-data");
+                    const data = await response.json();
+
+                    // Zaktualizuj tabelę z detalami
+                    const table = document.getElementById("detail-table");
+                    let tbody = table.querySelector("tbody");
+
+                    if (!tbody) {
+                        tbody = document.createElement("tbody");
+                        table.appendChild(tbody);
+                    }
+
+                    tbody.innerHTML = ""; // Wyczyść tabelę
+
+                    // Wypełnij tabelę danymi
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        row.forEach((cell, index) => {
+                            const td = document.createElement("td");
+                            td.textContent = cell;
+                            tr.appendChild(td);
+                        });
+
+                        // Dodaj kolumnę akcji (edycja/usunięcie)
+                        const tdAction = document.createElement("td");
+                        const deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.onclick = () => deleteRow(row[0]); // użyj ROWID jako identyfikator
+                        const editButton = document.createElement("button");
+                        editButton.textContent = "Edit";
+                        editButton.onclick = () => editRow(row[0]);
+                        tdAction.appendChild(deleteButton);
+                        tdAction.appendChild(editButton);
+                        tr.appendChild(tdAction);
+
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error("Error fetching detail data:", error);
+                }
+            }
+
+            // Funkcja usuwania wiersza
+            async function deleteRow(rowId) {
+                const response = await fetch(`/delete-row/${rowId}`, {
+                    method: "DELETE"
+                });
+                const result = await response.json();
+                alert(result.message);
+                await refreshDetailBrowser(); // Odśwież tabelę po usunięciu wiersza
+            }
+
+            // Funkcja edytowania wiersza (można rozbudować formularz do edycji)
+            async function editRow(rowId) {
+                const newTier = prompt("Enter new tier:");
+                const newDungeon = prompt("Enter new dungeon:");
+
+                const response = await fetch(`/update-row/${rowId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ tier: newTier, dungeon: newDungeon })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+                await refreshDetailBrowser(); // Odśwież tabelę po edycji
+            }
         </script>
     </body>
     </html>
